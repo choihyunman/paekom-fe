@@ -1,12 +1,13 @@
-import WebRTCApp from "./WebRTCApp";
+// src/App.tsx (선택사항)
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 
-function App() {
+export default function App() {
   return (
-    <div>
-      <h1>WebRTC MVP Demo</h1>
-      <WebRTCApp />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   );
 }
-
-export default App;
