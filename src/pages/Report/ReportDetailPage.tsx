@@ -1,21 +1,11 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate, useParams, Outlet } from "react-router-dom";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  Calendar,
-  FileText,
-  Clock,
-  User,
-  Heart,
-  Star,
-  AlertCircle,
-} from "lucide-react";
-import IssuesList from "./components/IssuesList";
-import EmotionBars from "./components/EmotionBars";
+import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import ReportSidebar from "./components/ReportSidebar";
 
-// 더미 데이터 타입
+// ----- 임시 데이터 (API 연결 전) -----
 type DetailedReport = {
   id: number;
   date: string;
@@ -32,7 +22,6 @@ type DetailedReport = {
   createdAt: string;
 };
 
-// 더미 데이터 (그대로 유지 가능)
 const detailedReportData: Record<string, DetailedReport> = {
   "1": {
     id: 1,
@@ -79,17 +68,31 @@ const detailedReportData: Record<string, DetailedReport> = {
   },
 };
 
-function getEmotionKorean(e: DetailedReport["emotion"]) {
-  if (e === "POSITIVE") return "긍정";
-  if (e === "NEGATIVE") return "부정";
-  return "중립";
-}
+export type DetailOutletContext = {
+  report: DetailedReport;
+  transcript: string;
+};
+
+// transcript 임시 응답
+const mockTranscriptResponse = {
+  status: "success",
+  data: {
+    id: 1,
+    status: "DONE",
+    transcript:
+      " 안녕하십니까 제 이름은 최현만입니다. 요즘에 취업이 참 어렵습니다. 가끔씩은 집에 혼자 들어가서 계속 나오고 싶지 않습니다. 집 밖에는 일주일에 한 번 정도 나갑니다. 하지만 사람들을 만나는데 자신감이 부족합니다. 제가 이렇게 된 데는 취업이 한몫한 것 같습니다. 취업을 하기가 너무 어렵습니다. 회사에서 저를 뽑아줄지 모르겠어요. 취업하고 싶습니다.",
+  },
+};
 
 export default function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const report = useMemo(() => (id ? detailedReportData[id] : undefined), [id]);
+  const transcript = useMemo(
+    () => mockTranscriptResponse.data.transcript.trim(),
+    []
+  );
 
   if (!report) {
     return (
@@ -105,7 +108,7 @@ export default function ReportDetailPage() {
   }
 
   const displayTitle =
-    report.title && report.title.trim().length > 0
+    report.title && report.title.trim()
       ? report.title
       : `${report.id}번째 상담`;
 
@@ -114,14 +117,14 @@ export default function ReportDetailPage() {
       {/* Header */}
       <div style={{ backgroundColor: "#CAE8FA" }}>
         <header className="shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 py-2">
+          <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(-1)}
-                  className="text-gray-600 hover:text-[#6EC6FF] cursor-pointer"
+                  className="text-gray-600 hover:text-[#6EC6FF]"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   목록으로
@@ -135,100 +138,49 @@ export default function ReportDetailPage() {
         </header>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Report Header */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-2xl text-gray-800 mb-2">
-                  {displayTitle}
-                </CardTitle>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{report.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <User className="h-4 w-4" />
-                    <span>{report.counselor}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{report.duration}</span>
+      {/* Main */}
+      <main className="max-w-6xl mx-auto px-8 py-8">
+        {/* ✅ 3등분 그리드 → 1fr + 240px 고정폭 사이드바 */}
+        <div className="grid grid-cols-1 lg:[grid-template-columns:minmax(0,1fr)_180px] gap-6">
+          {/* LEFT: 본문(메인) — col-span 제거 */}
+          <div>
+            <Card className="mb-8">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-2xl text-gray-800 mb-2">
+                      {displayTitle}
+                    </CardTitle>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{report.date}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <User className="h-4 w-4" />
+                        <span>{report.counselor}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{report.duration}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </CardHeader>
+            </Card>
 
-              {/* 상태/유형 배지는 삭제 (항상 개별·완료 가정) */}
+            {/* 탭 콘텐츠: 보고서 / 상담 다시보기 */}
+            <Outlet context={{ report, transcript }} />
+          </div>
+
+          {/* RIGHT: 사이드바 — 카드 없이 텍스트 링크만 */}
+          <aside>
+            <div className="sticky top-8">
+              <ReportSidebar />
             </div>
-          </CardHeader>
-        </Card>
-
-        {/* 상담 내용 요약 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-xl">
-              <FileText className="h-5 w-5 text-[#6EC6FF]" />
-              <span>상담 내용 요약</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed mb-6">
-              {report.summary}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 현재 겪고 있는 이슈 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-xl">
-              <AlertCircle className="h-5 w-5 text-[#FF8C69]" />
-              <span>현재 겪고 있는 이슈</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <IssuesList issues={report.issues} dense />
-          </CardContent>
-        </Card>
-
-        {/* 감정 섹션 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-xl">
-              <Heart className="h-5 w-5 text-[#FF8C69]" />
-              <span>상담자 주된 감정</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 text-sm text-gray-700">
-              현재 감정:{" "}
-              <span className="font-semibold">
-                {getEmotionKorean(report.emotion)}
-              </span>
-            </div>
-            <EmotionBars evidence={report.evidence} />
-          </CardContent>
-        </Card>
-
-        {/* 종합 평가 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-xl">
-              <Star className="h-5 w-5 text-[#FFD700]" />
-              <span>종합 평가</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-[#EAF6FF] p-6 rounded-lg border-l-4 border-[#6EC6FF]">
-              <p className="text-gray-800 text-lg font-medium text-center">
-                "{report.overallAssessment}"
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          </aside>
+        </div>
       </main>
     </div>
   );
