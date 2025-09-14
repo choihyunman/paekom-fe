@@ -5,6 +5,8 @@ import HomePage from "./pages/Home/HomePage";
 import VideoCounselingPage from "./pages/VideoCounseling/VideoCounselingPage";
 import ReportsPage from "./pages/Report/ReportsPage";
 import ReportDetailPage from "./pages/Report/ReportDetailPage";
+import ReportOverviewTab from "./pages/Report/ReportOverviewTab";
+import ReplayTranscriptTab from "./pages/Report/ReplayTrancriptTab";
 
 export const router = createBrowserRouter([
   {
@@ -14,7 +16,14 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "reports", element: <ReportsPage /> },
-      { path: "reports/:id", element: <ReportDetailPage /> },
+      {
+        path: "reports/:id",
+        element: <ReportDetailPage />, // 레이아웃(공통 header + 우측 사이드 메뉴)
+        children: [
+          { index: true, element: <ReportOverviewTab /> }, // 기본: 보고서
+          { path: "replay", element: <ReplayTranscriptTab /> }, // 상담 다시보기
+        ],
+      },
       //   { path: "missions", element: <MissionsPage /> },
       //   { path: "notices", element: <NoticesPage /> },
       { path: "video-counseling", element: <VideoCounselingPage /> },
