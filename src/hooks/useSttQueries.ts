@@ -8,6 +8,10 @@ export function useUploadSttMutation() {
   });
 }
 
+export function useUploadAndRequestReportMutation() {
+  return useMutation({ mutationFn: sttApi.uploadAndRequestReport });
+}
+
 export function useSttJobQuery(jobId?: number) {
   return useQuery<SttJob>({
     queryKey: ["sttJob", jobId],
