@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStereoRecorder } from "@/hooks/useStereoRecorder";
 import { useUploadSttMutation } from "@/hooks/useSttQueries";
 import { Lock, Loader2 } from "lucide-react";
+import { useUploadAndRequestReportMutation } from "@/hooks/useSttQueries";
 
 export default function RecordControls({
   localStream,
@@ -41,9 +42,10 @@ export default function RecordControls({
     onEnd?.();
     setStopping(true);
     try {
-      const file = await stopAndGetFile(); // 🎙 stop → File
+      const file = await stopAndGetFile(); // stop → File
+      await endMut.mutateAsync(file);
       if (file && file.size > 0) {
-        await uploadMut.mutateAsync(file); // ☁️ 업로드
+        await uploadMut.mutateAsync(file); // 업로드
       }
     } catch (e: any) {
       console.error(e);
@@ -57,6 +59,7 @@ export default function RecordControls({
     ended || !localStream || stopping || uploadMut.isPending;
 
   const showEndBusy = stopping || uploadMut.isPending;
+  const endMut = useUploadAndRequestReportMutation();
 
   return (
     <div className="flex items-center rounded-full bg-white p-1 shadow">
