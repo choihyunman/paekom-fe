@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Calendar, Clock, User } from "lucide-react";
 import ReportSidebar from "./components/ReportSidebar";
+import { useHeader } from "@/components/shared/AppHeader";
 
 // ----- 임시 데이터 (API 연결 전) -----
 type DetailedReport = {
@@ -94,6 +95,18 @@ export default function ReportDetailPage() {
     []
   );
 
+  const { setHeader, reset } = useHeader();
+
+  useEffect(() => {
+    setHeader({
+      title: "상담 보고서 상세",
+      showBack: true,
+      backTo: "/reports", // ← 이 경로로 이동
+      backLabel: "목록 보기",
+    });
+    return reset;
+  }, [setHeader, reset]);
+
   if (!report) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -114,37 +127,13 @@ export default function ReportDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div style={{ backgroundColor: "#CAE8FA" }}>
-        <header className="shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(-1)}
-                  className="text-gray-600 hover:text-[#6EC6FF]"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  목록으로
-                </Button>
-                <h1 className="text-2xl font-bold text-gray-800">
-                  상담 보고서 상세
-                </h1>
-              </div>
-            </div>
-          </div>
-        </header>
-      </div>
-
       {/* Main */}
       <main className="max-w-6xl mx-auto px-8 py-8">
         {/* ✅ 3등분 그리드 → 1fr + 240px 고정폭 사이드바 */}
         <div className="grid grid-cols-1 lg:[grid-template-columns:minmax(0,1fr)_180px] gap-6">
           {/* LEFT: 본문(메인) — col-span 제거 */}
           <div>
-            <Card className="mb-8">
+            <Card className="mb-8" bgClassName="bg-gray-50">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>

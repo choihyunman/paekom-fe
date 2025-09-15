@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import ReportList from "./components/ReportList";
+import { useEffect } from "react";
+import { useHeader } from "@/components/shared/AppHeader";
 
 // ---- 더미 데이터: 그대로 유지 ----
 const reportData = [
@@ -61,28 +61,19 @@ export default function ReportsPage() {
     navigate(`/reports/${id}`);
   };
 
+  const { setHeader, reset } = useHeader();
+
+  useEffect(() => {
+    setHeader({
+      title: "상담 보고서 목록",
+      showBack: true,
+      backTo: "/", // ← 이 경로로 이동
+    });
+    return reset;
+  }, [setHeader, reset]);
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div style={{ backgroundColor: "#CAE8FA" }}>
-        <header className="shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 py-2">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.history.back()}
-                className="text-gray-600 hover:text-[#6EC6FF] cursor-pointer"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                돌아가기
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-800">상담 보고서</h1>
-            </div>
-          </div>
-        </header>
-      </div>
-
       {/* Main: 목록만 표시 */}
       <main className="max-w-6xl mx-auto px-4 py-5">
         <div className="mb-5">
