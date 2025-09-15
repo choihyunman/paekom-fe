@@ -33,19 +33,6 @@ export default function ReportOverviewTab() {
         </CardContent>
       </Card>
 
-      {/* 현재 이슈 */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <AlertCircle className="h-5 w-5 text-[#FF8C69]" />
-            현재 겪고 있는 이슈
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <IssuesList issues={report.issues} dense />
-        </CardContent>
-      </Card>
-
       {/* 감정 */}
       <Card className="mb-8">
         <CardHeader>
