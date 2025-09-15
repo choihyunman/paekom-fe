@@ -26,7 +26,7 @@ const detailedReportData: Record<string, DetailedReport> = {
   "1": {
     id: 1,
     date: "2024-01-15",
-    title: "첫 상담 세션",
+    title: "1번째 상담",
     counselor: "김상담 전문가",
     duration: "50분",
     status: "완료",
@@ -48,7 +48,7 @@ const detailedReportData: Record<string, DetailedReport> = {
   "2": {
     id: 2,
     date: "2024-01-22",
-    title: "진행상황 점검",
+    title: "2번째 상담",
     counselor: "김상담 전문가",
     duration: "45분",
     status: "완료",
