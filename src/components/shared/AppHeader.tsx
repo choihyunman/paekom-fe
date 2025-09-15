@@ -1,7 +1,7 @@
 import { useCallback, type ReactNode } from "react";
 import { createContext, useContext, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 import type { To } from "react-router-dom";
 
@@ -11,6 +11,7 @@ type HeaderConfig = {
   backTo?: number | To; // ← string 경로, 또는 { pathname, search, state } 객체 지원
   backReplace?: boolean; // ← 히스토리 쌓지 않고 대체할지 옵션
   right?: { label: string; to?: string; onClick?: () => void } | null;
+  backLabel?: ReactNode; // 백버튼 문구 (undefined면 '뒤로가기기' 기본값)
 };
 
 type HeaderContextValue = {
@@ -77,6 +78,8 @@ export default function AppHeader() {
     }
   };
 
+  const backLabel = config.backLabel ?? "뒤로 가기";
+
   return (
     <div className="bg-[#CAE8FA]">
       <header className="shadow-sm">
@@ -88,10 +91,10 @@ export default function AppHeader() {
                   variant="ghost"
                   size="sm"
                   onClick={handleBack}
-                  className="text-gray-600 hover:text-sky-500"
+                  className="text-gray-600 hover:text-sky-500 cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  목록으로
+                  {backLabel}
                 </Button>
               )}
               <h1 className="text-2xl font-bold text-gray-800">
