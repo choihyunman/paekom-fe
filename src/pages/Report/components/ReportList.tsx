@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Calendar, Clock, User, ChevronRight } from "lucide-react";
 
 type Report = {
