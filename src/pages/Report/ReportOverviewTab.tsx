@@ -1,6 +1,6 @@
 import { useOutletContext } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, AlertCircle, Heart, Star } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { FileText, Heart, Star } from "lucide-react";
 import IssuesList from "./components/IssuesList";
 import EmotionBars from "./components/EmotionBars";
 import type { DetailOutletContext } from "./ReportDetailPage";
@@ -17,7 +17,7 @@ export default function ReportOverviewTab() {
   return (
     <>
       {/* 요약 */}
-      <Card className="mb-8">
+      <Card className="mb-8" bgClassName="bg-gray-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <FileText className="h-5 w-5 text-[#6EC6FF]" />
@@ -34,7 +34,7 @@ export default function ReportOverviewTab() {
       </Card>
 
       {/* 감정 */}
-      <Card className="mb-8">
+      <Card className="mb-8" bgClassName="bg-gray-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Heart className="h-5 w-5 text-[#FF8C69]" />
@@ -53,7 +53,7 @@ export default function ReportOverviewTab() {
       </Card>
 
       {/* 종합 평가 */}
-      <Card className="mb-8">
+      <Card className="mb-8" bgClassName="bg-gray-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Star className="h-5 w-5 text-[#FFD700]" />

@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { MessageSquareText } from "lucide-react";
 import type { DetailOutletContext } from "./ReportDetailPage";
 import { useMemo } from "react";

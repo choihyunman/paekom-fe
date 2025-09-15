@@ -2,16 +2,16 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  bgClassNmae?: string;
+  bgClassName?: string;
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, bgClassNmae, ...props }, ref) => (
+  ({ className, bgClassName, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
         "rounded-2xl border-gray-700  text-gray-900 shadow-sm",
-        bgClassNmae ?? "bg-[#F5F5F5]",
+        bgClassName ?? "bg-gray-50",
         className
       )}
       {...props}

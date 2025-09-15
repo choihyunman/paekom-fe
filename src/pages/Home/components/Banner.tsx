@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button"; // shadcn/ui
+import { Button } from "@/components/ui/Button"; // shadcn/ui
 import { cn } from "@/lib/utils";
 
 type Banner = {
