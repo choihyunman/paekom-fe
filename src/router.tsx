@@ -7,6 +7,8 @@ import ReportsPage from "./pages/Report/ReportsPage";
 import ReportDetailPage from "./pages/Report/ReportDetailPage";
 import ReportOverviewTab from "./pages/Report/ReportOverviewTab";
 import ReplayTranscriptTab from "./pages/Report/ReplayTrancriptTab";
+import MissionsPage from "./pages/Mission/MissonsPage";
+import MissionDetailPage from "./pages/Mission/MissionDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -18,13 +20,17 @@ export const router = createBrowserRouter([
       { path: "reports", element: <ReportsPage /> },
       {
         path: "reports/:id",
-        element: <ReportDetailPage />, // 레이아웃(공통 header + 우측 사이드 메뉴)
+        element: <ReportDetailPage />,
         children: [
           { index: true, element: <ReportOverviewTab /> }, // 기본: 보고서
           { path: "replay", element: <ReplayTranscriptTab /> }, // 상담 다시보기
         ],
       },
-      //   { path: "missions", element: <MissionsPage /> },
+      { path: "missions", element: <MissionsPage /> },
+      {
+        path: "missions/:id",
+        element: <MissionDetailPage />,
+      },
       //   { path: "notices", element: <NoticesPage /> },
       { path: "video-counseling", element: <VideoCounselingPage /> },
     ],
