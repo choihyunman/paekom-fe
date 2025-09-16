@@ -9,6 +9,8 @@ import ReportOverviewTab from "./pages/Report/ReportOverviewTab";
 import ReplayTranscriptTab from "./pages/Report/ReplayTrancriptTab";
 import MissionsPage from "./pages/Mission/MissonsPage";
 import MissionDetailPage from "./pages/Mission/MissionDetailPage";
+import BookingPage from "./pages/Booking/BookingPage";
+import BookingListPage from "./pages/Booking/BookingListPage";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +35,8 @@ export const router = createBrowserRouter([
       },
       //   { path: "notices", element: <NoticesPage /> },
       { path: "video-counseling", element: <VideoCounselingPage /> },
+      { path: "booking", element: <BookingPage /> },
+      { path: "bookings", element: <BookingListPage /> },
     ],
   },
 ]);

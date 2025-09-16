@@ -46,7 +46,7 @@ const CATEGORIES: Category[] = [
     title: "상담",
     description: "전문 상담사와 1:1 상담을 받아보세요",
     icon: MessageCircle,
-    href: "/video-counseling",
+    href: "/bookings",
   },
   {
     id: "report",
