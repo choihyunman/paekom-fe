@@ -11,7 +11,7 @@ type HeaderConfig = {
   backTo?: number | To; // ← string 경로, 또는 { pathname, search, state } 객체 지원
   backReplace?: boolean; // ← 히스토리 쌓지 않고 대체할지 옵션
   right?: { label: string; to?: string; onClick?: () => void } | null;
-  backLabel?: ReactNode; // 백버튼 문구 (undefined면 '뒤로가기기' 기본값)
+  backLabel?: ReactNode; // 백버튼 문구 (undefined면 '홈으로' 기본값)
 };
 
 type HeaderContextValue = {
@@ -78,7 +78,7 @@ export default function AppHeader() {
     }
   };
 
-  const backLabel = config.backLabel ?? "뒤로 가기";
+  const backLabel = config.backLabel ?? "홈으로";
 
   return (
     <div className="bg-[#CAE8FA]">
