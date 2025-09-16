@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import ReportList from "./components/ReportList";
 import { useEffect } from "react";
 import { useHeader } from "@/components/shared/AppHeader";
+import { useReportsStore } from "@/stores/reportsStore";
 
 // ---- 더미 데이터: 그대로 유지 ----
 const reportData = [
@@ -52,9 +53,17 @@ export type Report = (typeof reportData)[number];
 
 export default function ReportsPage() {
   const navigate = useNavigate();
+  const { reports, loading, error, fetchReports } = useReportsStore();
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
+
+  if (loading) return <div className="p-6 text-gray-600">불러오는 중…</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   // 완료된 상담만 노출 (필요하면 날짜 정렬 추가 가능)
-  const completedReports = reportData.filter((r) => r.status === "완료");
+  // const completedReports = reportData.filter((r) => r.status === "완료");
   // .sort((a, b) => a.date.localeCompare(b.date)) // 날짜 오름차순 정렬 예시
 
   const handleOpenReport = (id: number) => {
@@ -80,7 +89,7 @@ export default function ReportsPage() {
           <p className="text-gray-600">* 완료된 상담 기록만 표시됩니다.</p>
         </div>
 
-        <ReportList reports={completedReports} onOpen={handleOpenReport} />
+        <ReportList reports={reports} onOpen={handleOpenReport} />
       </main>
     </div>
   );
