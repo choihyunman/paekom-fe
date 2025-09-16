@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { fromYMDLocal } from "../BookingPage";
 
 type Props = {
   selectedDate: string;
@@ -29,7 +30,7 @@ export default function BookingSummaryCard({
             <div className="bg-[#EAF6FF] rounded-lg p-4 mb-6">
               <p className="text-gray-700 mb-2">
                 <strong>날짜:</strong>{" "}
-                {new Date(selectedDate).toLocaleDateString("ko-KR", {
+                {fromYMDLocal(selectedDate).toLocaleDateString("ko-KR", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -49,7 +50,7 @@ export default function BookingSummaryCard({
           <Button
             onClick={onBook}
             disabled={!canBook}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-8 py-3 text-lg"
+            className="cursor-pointer bg-[#6EC6FF] hover:bg-[#5BB8F3] disabled:bg-gray-300 text-white px-8 py-3 text-lg"
           >
             예약하기
           </Button>

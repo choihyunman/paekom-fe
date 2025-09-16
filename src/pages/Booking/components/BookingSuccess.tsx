@@ -5,13 +5,13 @@ import { CheckCircle } from "lucide-react";
 type Props = {
   selectedDate: string;
   selectedTime: string;
-  onGoHome: () => void;
+  onGoList: () => void;
 };
 
 export default function BookingSuccess({
   selectedDate,
   selectedTime,
-  onGoHome,
+  onGoList,
 }: Props) {
   return (
     <Card className="text-center shadow-lg">
@@ -41,10 +41,10 @@ export default function BookingSuccess({
         </div>
 
         <Button
-          onClick={onGoHome}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+          onClick={onGoList}
+          className="bg-[#6EC6FF] hover:bg-[#5BB8F3] cursor-pointer text-white px-8 py-3"
         >
-          홈으로 돌아가기
+          목록으로 돌아가기
         </Button>
       </CardContent>
     </Card>

@@ -31,9 +31,9 @@ export default function DateGrid({
               key={d.value}
               variant={selectedDate === d.value ? "default" : "outline"}
               className={cn(
-                "h-auto p-3 flex flex-col items-center justify-center",
+                "h-auto p-3 flex flex-col items-center justify-center cursor-pointer",
                 selectedDate === d.value
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  ? "bg-[#6EC6FF] hover:bg-[#5BB8F3] text-white"
                   : "hover:bg-[#EAF6FF] hover:border-[#6EC6FF]"
               )}
               onClick={() => onSelect(d.value)}

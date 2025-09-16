@@ -5,16 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useHeader } from "@/components/shared/AppHeader";
 import BookingListItem from "./components/BookingListItem";
 import StatusBadge from "./components/StatusBadge";
-
-// ✅ 임시 데이터 (나중에 API 연동 시 이 블록만 교체/삭제)
-type Booking = {
-  id: number;
-  date: string; // "2025-09-20"
-  time: string; // "14:00"
-  counselor: string;
-  method: "화상" | "대면";
-  status: "확정" | "완료" | "취소" | "대기";
-};
+import { loadBookings, updateBooking, type Booking } from "./bookingStorage";
 
 const bookingsSeed: Booking[] = [
   {
@@ -24,6 +15,7 @@ const bookingsSeed: Booking[] = [
     counselor: "김상담 전문가",
     method: "화상",
     status: "확정",
+    createdAt: "2025-09-15T10:00:00",
   },
   {
     id: 2,
@@ -32,6 +24,7 @@ const bookingsSeed: Booking[] = [
     counselor: "이상담 전문가",
     method: "화상",
     status: "완료",
+    createdAt: "2025-09-10T16:00:00",
   },
   {
     id: 3,
@@ -40,6 +33,7 @@ const bookingsSeed: Booking[] = [
     counselor: "박상담 전문가",
     method: "화상",
     status: "대기",
+    createdAt: "2025-09-18T18:00:00",
   },
   {
     id: 4,
@@ -48,6 +42,7 @@ const bookingsSeed: Booking[] = [
     counselor: "정상담 전문가",
     method: "화상",
     status: "취소",
+    createdAt: "2025-09-08T11:00:00",
   },
 ];
 
@@ -57,7 +52,7 @@ export default function BookingListPage() {
   const navigate = useNavigate();
   const { setHeader, reset } = useHeader();
   const [tab, setTab] = useState<TabKey>("upcoming");
-  const [list, setList] = useState<Booking[]>(bookingsSeed);
+  const [saved, setSaved] = useState<Booking[]>([]);
 
   // 공통 헤더
   useEffect(() => {
@@ -69,6 +64,13 @@ export default function BookingListPage() {
     });
     return reset;
   }, [setHeader, reset]);
+
+  useEffect(() => {
+    setSaved(loadBookings()); // 마운트 1회만
+  }, []);
+
+  // 표시 리스트: 저장된 것(최신 우선) + seed
+  const list = useMemo(() => [...saved, ...bookingsSeed], [saved]);
 
   // 분류
   const now = new Date();
@@ -100,10 +102,10 @@ export default function BookingListPage() {
     navigate(`/booking`, { state: target });
   };
 
+  // ✅ 취소 시 스토리지 업데이트 + 화면 갱신
   const handleCancel = (id: number) => {
-    setList((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: "취소" } : b))
-    );
+    updateBooking(id, { status: "취소" });
+    setSaved(loadBookings()); // 갱신 반영
   };
 
   return (
@@ -144,7 +146,7 @@ export default function BookingListPage() {
               .map((b) => (
                 <BookingListItem
                   key={b.id}
-                  booking={b}
+                  booking={{ ...b, counselor: b.counselor || "배정 대기" }}
                   statusBadge={<StatusBadge status={b.status} />}
                   onOpen={() => handleOpen(b.id)}
                   onReschedule={() => handleReschedule(b.id)}

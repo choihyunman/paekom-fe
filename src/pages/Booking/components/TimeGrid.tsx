@@ -31,9 +31,9 @@ export default function TimeGrid({
               key={t}
               variant={selectedTime === t ? "default" : "outline"}
               className={cn(
-                "h-12",
+                "h-12 cursor-pointer",
                 selectedTime === t
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  ? "bg-[#6EC6FF] hover:bg-[#5BB8F3] text-white"
                   : "hover:bg-[#EAF6FF] hover:border-[#6EC6FF]"
               )}
               onClick={() => onSelect(t)}

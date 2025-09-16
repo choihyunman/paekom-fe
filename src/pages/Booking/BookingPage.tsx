@@ -6,6 +6,7 @@ import DateGrid from "./components/DateGrid";
 import TimeGrid from "./components/TimeGrid";
 import BookingSummaryCard from "./components/BookingSummaryCard";
 import BookingSuccess from "./components/BookingSuccess";
+import { addBooking } from "./bookingStorage";
 
 // 예약 가능한 시간 슬롯 (임시)
 const timeSlots = [
@@ -24,6 +25,20 @@ type DateItem = {
   display: string; // "9월 16일 (화)" 등
 };
 
+// ✅ 로컬 기준 YYYY-MM-DD로 만들기
+function toYMDLocal(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// ✅ 로컬 기준으로 YYYY-MM-DD를 Date로 만들기
+export function fromYMDLocal(ymd: string) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1); // ← 로컬 타임존
+}
+
 function generateDates(days = 14): DateItem[] {
   const list: DateItem[] = [];
   const today = new Date();
@@ -31,7 +46,8 @@ function generateDates(days = 14): DateItem[] {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     list.push({
-      value: d.toISOString().split("T")[0],
+      // ❌ d.toISOString().split("T")[0]
+      value: toYMDLocal(d), // ✅ 로컬 YMD
       display: d.toLocaleDateString("ko-KR", {
         month: "short",
         day: "numeric",
@@ -65,7 +81,21 @@ export default function BookingPage() {
   const dates = useMemo(() => generateDates(14), []);
 
   const handleBooking = () => {
-    if (selectedDate && selectedTime) setIsBooked(true);
+    if (!selectedDate || !selectedTime) return;
+
+    // ✅ 이 시점에만 저장
+    addBooking({
+      date: selectedDate,
+      time: selectedTime,
+      method: "화상", // 기본값 (원하면 선택 UI 추가)
+      status: "확정",
+      counselor: "배정 대기",
+      note: "예약 확정 후 안내를 드립니다.",
+    });
+
+    setIsBooked(true);
+    // 또는 바로 목록으로 보내고 싶다면:
+    // navigate("/bookings", { replace: true })
   };
 
   if (isBooked) {
@@ -74,7 +104,7 @@ export default function BookingPage() {
         <BookingSuccess
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          onGoHome={() => navigate("/")}
+          onGoList={() => navigate("/bookings")}
         />
       </div>
     );
