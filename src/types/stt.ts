@@ -9,3 +9,9 @@ export type SttJob = {
   startedAt?: string | null;
   finishedAt?: string | null;
 };
+
+export interface ApiTranscriptPayload {
+  id: number;
+  status: "DONE" | "PENDING" | string;
+  transcript: string;
+}
