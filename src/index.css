@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css");
 
-/* 필요하면 커스텀 전역 스타일 추가 */
+*::-webkit-scrollbar {
+  display: none;
+}
 html,
 body {
   font-family: "Pretendard Variable", Pretendard, -apple-system,

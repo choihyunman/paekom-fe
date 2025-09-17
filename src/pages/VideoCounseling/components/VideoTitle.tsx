@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function VideoTile({
+export default function VideoTitle({
   stream,
   muted,
   label,

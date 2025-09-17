@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge, type BadgeProps } from "@/components/ui/Badge";
 import { Sparkles, StickyNote } from "lucide-react";
 import { useHeader } from "@/components/shared/AppHeader";
+import { getMissionById } from "./missionStorage";
 
 // ---- 타입
 type MissionDetail = {
@@ -61,7 +62,7 @@ export default function MissionDetailPage() {
   const { id } = useParams();
   const { setHeader, reset } = useHeader();
   const [mission, setMission] = useState<MissionDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   // 헤더 설정
   useEffect(() => {
@@ -74,14 +75,29 @@ export default function MissionDetailPage() {
     return reset;
   }, [setHeader, reset]);
 
-  // TODO: 실제 API 연동으로 교체
   useEffect(() => {
-    // 예시: id를 사용해서 API 호출할 자리
-    const res = SAMPLE_RESPONSE;
-    if (res.status === "success") {
-      setMission(res.data);
-    } else {
-      setError(res.message ?? "미션을 불러오지 못했습니다.");
+    const n = Number(id);
+    const found = Number.isFinite(n) ? getMissionById(n) : undefined;
+    if (found) {
+      // 저장된 데이터로 상세 표시
+      setMission({
+        title: found.title,
+        content: found.content,
+        category: found.category, // 이미 표시라벨
+        memo: found.memo,
+        // 피드백이 없으면 임시 데이터의 피드백 사용
+        feedback:
+          found.feedback ||
+          (SAMPLE_RESPONSE.status === "success"
+            ? SAMPLE_RESPONSE.data.feedback
+            : undefined),
+      });
+      return;
+    }
+
+    // 없으면 기존 SAMPLE_RESPONSE 등으로 fallback
+    if (SAMPLE_RESPONSE.status === "success") {
+      setMission(SAMPLE_RESPONSE.data);
     }
   }, [id]);
 
