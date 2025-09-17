@@ -85,7 +85,12 @@ export default function MissionDetailPage() {
         content: found.content,
         category: found.category, // 이미 표시라벨
         memo: found.memo,
-        // feedback은 없을 수 있음
+        // 피드백이 없으면 임시 데이터의 피드백 사용
+        feedback:
+          found.feedback ||
+          (SAMPLE_RESPONSE.status === "success"
+            ? SAMPLE_RESPONSE.data.feedback
+            : undefined),
       });
       return;
     }
