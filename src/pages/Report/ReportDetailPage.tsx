@@ -26,29 +26,29 @@ type DetailedReport = {
 const detailedReportData: Record<string, DetailedReport> = {
   "1": {
     id: 1,
-    date: "2024-01-15",
+    date: "2025-09-11",
     title: "1번째 상담",
     counselor: "김상담 전문가",
     duration: "50분",
     status: "완료",
     type: "개별상담",
     summary:
-      "현재 취업 스트레스로 인해 사회적 위축과 자신감 저하를 경험하고 있습니다. 주 1회 미만으로 외출하며, 대인관계 회피 및 무기력 증상이 나타나고 있습니다. 취업 실패에 대한 두려움과 미래에 대한 불확실성이 심리적 부담으로 작용하고 있습니다.",
+      "내담자는 취업의 어려움을 겪고 있으나 여전히 도전하려는 의지를 보이고 있습니다. 외부 활동과 생활 리듬 회복을 통해 점차 자신감을 되찾고 있으며, 취업에 대한 긍정적인 기대를 유지하려 노력하고 있습니다.",
     issues: [
-      "취업 스트레스 및 구직 실패에 대한 불안",
-      "사회적 위축 및 대인관계 회피",
-      "자신감 부족 및 무기력증",
-      "외출 빈도 감소(주 1회 미만)",
-      "미래에 대한 불확실성",
+      "취업 준비 과정에서의 마음 관리 필요",
+      "사회적 활동 참여에 대한 점진적 노력",
+      "자신감과 자기 효능감 향상을 위한 과정",
+      "미래 방향성에 대한 고민과 탐색",
     ],
-    emotion: "NEUTRAL",
-    evidence: { POSITIVE: 0, NEUTRAL: 100, NEGATIVE: 0 },
-    overallAssessment: "밖에 자주 나가는 게 어떨까요?",
+    emotion: "POSITIVE",
+    evidence: { POSITIVE: 50, NEUTRAL: 30, NEGATIVE: 20 },
+    overallAssessment:
+      "현재 상담자께서는 취업 준비 과정에서의 어려움 속에서도 포기하지 않고 도전하려는 강한 의지를 보여주고 계십니다. 이는 매우 긍정적인 신호입니다. 다만, 현재의 변화가 더 견고해지기 위해서는 불안과 긴장 속에서도 자신의 감정을 다정하게 마주하고 돌보는 태도가 필요합니다.",
     createdAt: "2025-09-11T14:20:00",
   },
   "2": {
     id: 2,
-    date: "2024-01-22",
+    date: "2025-09-10",
     title: "2번째 상담",
     counselor: "김상담 전문가",
     duration: "45분",
@@ -65,7 +65,7 @@ const detailedReportData: Record<string, DetailedReport> = {
     evidence: { POSITIVE: 75, NEUTRAL: 20, NEGATIVE: 5 },
     overallAssessment:
       "온라인 커뮤니티 참여를 통한 점진적 사회적 참여를 권장합니다.",
-    createdAt: "2025-09-18T15:30:00",
+    createdAt: "2025-09-10T15:30:00",
   },
 };
 

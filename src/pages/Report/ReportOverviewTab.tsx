@@ -27,7 +27,7 @@ export default function ReportOverviewTab() {
         <CardContent>
           <p className="text-gray-700 leading-relaxed mb-6">{report.summary}</p>
           <div>
-            <h4 className="font-semibold text-gray-800 mb-3">주요 문제점</h4>
+            <h4 className="font-semibold text-gray-800 mb-3">주요 이슈</h4>
             <IssuesList issues={report.issues} />
           </div>
         </CardContent>

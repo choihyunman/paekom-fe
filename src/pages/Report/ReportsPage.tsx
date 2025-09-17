@@ -7,7 +7,7 @@ import { useHeader } from "@/components/shared/AppHeader";
 const reportData = [
   {
     id: 1,
-    date: "2024-01-15",
+    date: "2025-09-11",
     title: "첫 상담 세션",
     counselor: "김상담 전문가",
     duration: "50분",
@@ -17,7 +17,7 @@ const reportData = [
   },
   {
     id: 2,
-    date: "2024-01-22",
+    date: "2025-09-02",
     title: "진행상황 점검",
     counselor: "김상담 전문가",
     duration: "45분",
@@ -27,7 +27,7 @@ const reportData = [
   },
   {
     id: 3,
-    date: "2024-01-29",
+    date: "2024-08-29",
     title: "그룹 활동 참여",
     counselor: "이그룹 전문가",
     duration: "90분",
@@ -37,7 +37,7 @@ const reportData = [
   },
   {
     id: 4,
-    date: "2024-02-05",
+    date: "2025-08-23",
     title: "월간 종합 평가",
     counselor: "김상담 전문가",
     duration: "60분",
