@@ -2,19 +2,22 @@ import { NavLink, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo_paekom.svg";
 import { User } from "lucide-react";
+export const BRAND_H = 64; // 헤더 높이(px)
 
 export default function Header() {
   return (
-    <header className="shadow-sm" role="banner">
+    <header className="shadow-sm sticky top-0 z-50 bg-white" role="banner">
       {/* AppLayout에서 배경(#CAE8FA)을 감싸주므로 여기선 투명 */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-2xl font-bold text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 rounded-lg"
-          >
-            <img src={logo} alt="paekom" width={100} />
-          </Link>
+          <div className="flex items-center space-x-4">
+            <Link
+              to="/"
+              className="text-2xl font-bold text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 rounded-lg"
+            >
+              <img src={logo} alt="paekom" width={100} />
+            </Link>
+          </div>
 
           {/* md 이상에서 텍스트 네비 */}
           <nav

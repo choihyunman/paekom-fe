@@ -6,19 +6,22 @@ import AppHeader, { HeaderProvider } from "@/components/shared/AppHeader";
 
 export default function AppLayout() {
   return (
-    // 100svh = 모바일 안전 뷰포트
-    <div className="min-h-[100svh] grid grid-rows-[auto,1fr,auto] bg-white">
+    <div className="min-h-[100svh] flex flex-col bg-white">
+      {/* 최상단 브랜드 헤더: 항상 고정 */}
       <Header />
 
-      <HeaderProvider>
-        {/* ⬇️ 여기에 Outlet이 있어야 자식 라우트(HomePage)가 렌더됨 */}
-        <main className="overflow-y-auto">
+      {/* 고정 헤더만큼 상단 여백 확보 (헤더에 가리지 않게) */}
+      <div className="flex-1 flex flex-col">
+        <HeaderProvider>
+          {/* ⬇️ 내부에 overflow 주지 말고(=문서가 스크롤) AppHeader만 sticky */}
           <AppHeader />
-          <Outlet />
-        </main>
-      </HeaderProvider>
+          <main className="flex-1" style={{ marginTop: "0px" }}>
+            <Outlet />
+          </main>
+        </HeaderProvider>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

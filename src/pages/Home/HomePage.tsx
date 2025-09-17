@@ -1,6 +1,8 @@
 import { MessageCircle, FileText, Target, Bell } from "lucide-react";
 import BannerCarousel from "./components/Banner";
 import CategoryGrid from "./components/CategoryGrid";
+import { useEffect } from "react";
+import { useHeader } from "@/components/shared/AppHeader";
 
 type Banner = {
   id: number;
@@ -73,6 +75,21 @@ const CATEGORIES: Category[] = [
 // -------------------------------------------
 
 export default function HomePage() {
+  const { setHeader, reset } = useHeader();
+
+  useEffect(() => {
+    setHeader({
+      // 콘텐츠는 비우되…
+      title: "",
+      showBack: false,
+      right: null,
+      // ✅ 빈 바를 보여줘 (배경색+구분선+높이만)
+      showEmptyBar: true,
+      bg: "#CAE8FA", // 선택
+    });
+    return reset;
+  }, [setHeader, reset]);
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header+Banner 영역 배경 톤 */}

@@ -4,14 +4,20 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 import type { To } from "react-router-dom";
+import { cn } from "@/lib/utils";
+export const APP_HEADER_H = 64; // 헤더 높이(px)
 
 type HeaderConfig = {
   title: string;
   showBack: boolean;
-  backTo?: number | To; // ← string 경로, 또는 { pathname, search, state } 객체 지원
-  backReplace?: boolean; // ← 히스토리 쌓지 않고 대체할지 옵션
+  backTo?: number | To;
+  backReplace?: boolean;
   right?: { label: string; to?: string; onClick?: () => void } | null;
-  backLabel?: ReactNode; // 백버튼 문구 (undefined면 '홈으로' 기본값)
+  backLabel?: ReactNode;
+  /** ✅ 내용이 없어도 배경색 바(높이 APP_HEADER_H)를 렌더 */
+  showEmptyBar?: boolean;
+  /** (선택) 빈 바/헤더 배경색 커스텀 */
+  bg?: string; // default: "#CAE8FA"
 };
 
 type HeaderContextValue = {
@@ -25,6 +31,8 @@ const initialConfig: HeaderConfig = {
   showBack: false,
   backTo: -1,
   right: null,
+  showEmptyBar: false,
+  bg: "#CAE8FA",
 };
 
 const HeaderContext = createContext<HeaderContextValue | null>(null);
@@ -64,9 +72,11 @@ export function useHeader() {
 }
 
 /** 실제 헤더 UI */
-export default function AppHeader() {
+export default function AppHeader({ className }: { className?: string }) {
   const { config } = useHeader();
   const navigate = useNavigate();
+
+  const isEmpty = !config.title && !config.showBack && !config.right?.label;
 
   const handleBack = () => {
     if (typeof config.backTo === "number") {
@@ -78,10 +88,25 @@ export default function AppHeader() {
     }
   };
 
+  // ✅ 비어있어도 같은 높이 스페이서 렌더
+  if (isEmpty && config.showEmptyBar) {
+    return (
+      <div
+        className={cn("w-full", className)}
+        style={{ backgroundColor: config.bg }}
+      >
+        <header
+          className="border-b border-black/10"
+          style={{ height: APP_HEADER_H }}
+        ></header>
+      </div>
+    );
+  }
+
   const backLabel = config.backLabel ?? "홈으로";
 
   return (
-    <div className="bg-[#CAE8FA]">
+    <div className="bg-[#CAE8FA] sticky top-[64px]">
       <header className="shadow-sm">
         <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center justify-between">
@@ -97,9 +122,11 @@ export default function AppHeader() {
                   {backLabel}
                 </Button>
               )}
-              <h1 className="text-2xl font-bold text-gray-800">
-                {config.title || " "}
-              </h1>
+              {config.title && (
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {config.title}
+                </h1>
+              )}
             </div>
 
             {config.right?.label ? (
