@@ -3,16 +3,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { FileText, Heart, Star } from "lucide-react";
 import IssuesList from "./components/IssuesList";
 import EmotionBars from "./components/EmotionBars";
-import type { DetailOutletContext } from "./ReportDetailPage";
 
-function getEmotionKorean(e: "POSITIVE" | "NEUTRAL" | "NEGATIVE") {
+function getEmotionKorean(e: string) {
   if (e === "POSITIVE") return "긍정";
   if (e === "NEGATIVE") return "부정";
   return "중립";
 }
 
+type Ctx = {
+  report: {
+    summary: string;
+    issues: string[];
+    emotion: string;
+    evidence: { POSITIVE: number; NEUTRAL: number; NEGATIVE: number };
+    overallAssessment: string;
+  };
+};
+
 export default function ReportOverviewTab() {
-  const { report } = useOutletContext<DetailOutletContext>();
+  // ✅ undefined 대비 (초기 렌더/라우팅 전환 시)
+  const ctx = useOutletContext<Ctx | undefined>();
+  if (!ctx?.report) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-xl">상담 내용 요약</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-500">보고서 컨텍스트가 없습니다.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { report } = ctx;
+  const evidence = report.evidence ?? { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 };
 
   return (
     <>
@@ -48,7 +73,7 @@ export default function ReportOverviewTab() {
               {getEmotionKorean(report.emotion)}
             </span>
           </div>
-          <EmotionBars evidence={report.evidence} />
+          <EmotionBars evidence={evidence} />
         </CardContent>
       </Card>
 
