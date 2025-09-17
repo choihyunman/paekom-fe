@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { MessageSquareText } from "lucide-react";
@@ -15,13 +15,11 @@ function splitSentences(text: string): string[] {
 type TabContext = { report: { id: number } };
 
 export default function ReplayTranscriptTab() {
-  // ✅ 부모 Outlet에서 report.id만 받음
   const { report } = useOutletContext<TabContext>();
   const id = report?.id;
 
   const { byId, loading, error, fetch } = useSttStore();
 
-  // 마운트 시(or id 변경 시) transcript 가져오기 (캐시되어 있으면 skip됨)
   useEffect(() => {
     if (Number.isFinite(id)) fetch(id);
   }, [id, fetch]);
@@ -45,13 +43,12 @@ export default function ReplayTranscriptTab() {
           ) : error[id!] ? (
             <p className="text-sm text-red-600">{error[id!]}</p>
           ) : sentences.length ? (
-            <div className="space-y-2">
+            // ✅ 말풍선 제거: 문장별로 한 줄씩 간격만 주어 표시
+            <div className="space-y-1">
               {sentences.map((s, i) => (
-                <div key={i} className="flex justify-end">
-                  <div className="inline-block max-w-[80%] lg:max-w-[70%] rounded-2xl border border-[#D7ECFF] bg-[#EAF6FF] px-3 py-2 shadow-sm">
-                    <p className="text-sm text-gray-900 leading-7">{s}</p>
-                  </div>
-                </div>
+                <p key={i} className="text-sm text-gray-800 leading-7">
+                  {s}
+                </p>
               ))}
             </div>
           ) : (
