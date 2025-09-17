@@ -1,10 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useWebRTC } from "@/hooks/useWebRTC";
-import VideoTile from "./components/VideoTitle";
+import VideoTitle from "./components/VideoTitle";
 import RecordControls from "./components/RecordControls";
 import { Users, ShieldCheck, MessageSquareHeart } from "lucide-react";
 import counselorImg from "@/assets/counselor.png";
+import { useCallTimer } from "@/hooks/useCallTimer";
 
 type CallState = "idle" | "active" | "ended";
 const SIGNALING_URL = "ws://localhost:8080/ws/signaling";
@@ -13,6 +14,10 @@ export default function VideoCounselingPage() {
   const { roomId = "room1" } = useParams();
   const [showCounselor, setShowCounselor] = React.useState(false);
   const [callState, setCallState] = React.useState<CallState>("idle");
+
+  // 진행 타이머
+  const isRunning = callState === "active";
+  const elapsed = useCallTimer(isRunning);
 
   const { local: localStream, remote: remoteStream } = useWebRTC(
     roomId,
@@ -34,7 +39,7 @@ export default function VideoCounselingPage() {
             </div>
           ) : remoteStream ? (
             <div className="h-[420px] w-full overflow-hidden rounded-xl">
-              <VideoTile stream={remoteStream} />
+              <VideoTitle stream={remoteStream} />
             </div>
           ) : showCounselor ? (
             <div className="h-[420px] w-full overflow-hidden rounded-xl">
@@ -85,7 +90,7 @@ export default function VideoCounselingPage() {
             </div>
             <div className="flex items-center justify-between py-1 text-slate-600">
               <span>진행 시간</span>
-              {/* <b className="tabular-nums text-slate-800">{elapsed}</b> */}
+              <b className="tabular-nums text-slate-800">{elapsed}</b>
             </div>
           </div>
 
@@ -106,7 +111,7 @@ export default function VideoCounselingPage() {
         lg:static lg:w-full lg:rounded-2xl lg:bg-white lg:p-2 lg:z-auto
       "
           >
-            <VideoTile stream={localStream} muted label="내 화면" mirrored />
+            <VideoTitle stream={localStream} muted label="내 화면" mirrored />
           </div>
         </aside>
       </main>

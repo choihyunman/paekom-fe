@@ -1,6 +1,8 @@
 import { MessageCircle, FileText, Target, Bell } from "lucide-react";
 import BannerCarousel from "./components/Banner";
 import CategoryGrid from "./components/CategoryGrid";
+import { useEffect } from "react";
+import { useHeader } from "@/components/shared/AppHeader";
 
 type Banner = {
   id: number;
@@ -46,7 +48,7 @@ const CATEGORIES: Category[] = [
     title: "상담",
     description: "전문 상담사와 1:1 상담을 받아보세요",
     icon: MessageCircle,
-    href: "/video-counseling",
+    href: "/bookings",
   },
   {
     id: "report",
@@ -73,6 +75,21 @@ const CATEGORIES: Category[] = [
 // -------------------------------------------
 
 export default function HomePage() {
+  const { setHeader, reset } = useHeader();
+
+  useEffect(() => {
+    setHeader({
+      // 콘텐츠는 비우되…
+      title: "",
+      showBack: false,
+      right: null,
+      // ✅ 빈 바를 보여줘 (배경색+구분선+높이만)
+      showEmptyBar: true,
+      bg: "#CAE8FA", // 선택
+    });
+    return reset;
+  }, [setHeader, reset]);
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header+Banner 영역 배경 톤 */}

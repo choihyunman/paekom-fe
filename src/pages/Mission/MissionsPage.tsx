@@ -1,12 +1,13 @@
 import MissionCard from "./components/MissionCard";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useHeader } from "@/components/shared/AppHeader";
 import { useNavigate } from "react-router-dom";
+import { loadMissions, type Mission } from "./missionStorage";
 
 // ✅ 임시데이터: 나중에 삭제하기 쉽게 이 파일에만 보관
-const missionPosts = [
+const seedPosts: Mission[] = [
   {
     id: 1,
     title: "오늘 처음으로 산책을 했어요!",
@@ -50,9 +51,11 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function MissionsPage() {
-  const hasPosts = missionPosts.length > 0;
   const { setHeader, reset } = useHeader();
   const navigate = useNavigate();
+
+  // ✅ 로컬 저장 데이터
+  const [saved, setSaved] = useState<Mission[]>([]);
 
   useEffect(() => {
     setHeader({
@@ -63,21 +66,44 @@ export default function MissionsPage() {
     return reset;
   }, [setHeader, reset]);
 
+  useEffect(() => {
+    // 마운트 시 로컬에서 읽기
+    const list = loadMissions();
+    setSaved(list);
+  }, []);
+
+  // 최신 등록글이 위로 오게: saved(최신) + seed(샘플)
+  const posts = [...saved, ...seedPosts];
+  const hasPosts = posts.length > 0;
+
   return (
     <div className="min-h-screen bg-white">
       {/* Main */}
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            나의 미션 기록
-          </h2>
-          <p className="text-gray-600">작은 성취들을 기록하고 공유해보세요.</p>
-        </section>
+        <div className="flex flex-row justify-between">
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              나의 미션 기록
+            </h2>
+            <p className="text-gray-600">
+              작은 성취들을 기록하고 공유해보세요.
+            </p>
+          </section>
+
+          <div className="ml-auto">
+            <Button
+              className="bg-[#6EC6FF] hover:bg-[#5BB8F3] text-white cursor-pointer"
+              onClick={() => navigate("/missions/write")}
+            >
+              미션 기록하기
+            </Button>
+          </div>
+        </div>
 
         {/* 미션 목록 */}
         {hasPosts ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {missionPosts.map((post) => (
+            {posts.map((post) => (
               <MissionCard
                 key={post.id}
                 post={post}
