@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useHeader } from "@/components/shared/AppHeader";
 import BookingListItem from "./components/BookingListItem";
 import StatusBadge from "./components/StatusBadge";
-import { loadBookings, updateBooking, type Booking } from "./bookingStorage";
+import { loadBookings, updateBooking, type Booking } from "./BookingStorage";
 
 const bookingsSeed: Booking[] = [
   {

@@ -3,11 +3,7 @@ FROM node:22
 WORKDIR /frontend
 
 COPY package*.json ./
-
-RUN npm cache clean --force && \
-    rm -rf node_modules package-lock.json && \
-    npm install
-
+RUN npm install
 
 COPY . .
 

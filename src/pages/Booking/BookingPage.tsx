@@ -6,7 +6,7 @@ import DateGrid from "./components/DateGrid";
 import TimeGrid from "./components/TimeGrid";
 import BookingSummaryCard from "./components/BookingSummaryCard";
 import BookingSuccess from "./components/BookingSuccess";
-import { addBooking } from "./bookingStorage";
+import { addBooking } from "./BookingStorage";
 
 // 예약 가능한 시간 슬롯 (임시)
 const timeSlots = [

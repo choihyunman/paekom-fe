@@ -1,0 +1,20 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .  # Dockerfile이 들어 있는 폴더 경로
+    ports:
+      - "5173:5173"         # 로컬 포트:컨테이너 포트
+    env_file:
+      - .env                # .env 파일 주입
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: ${VITE_API_BASE_URL}   # env 주입 예시
+    networks:
+      - paekom-network
+    restart: always
+
+networks:
+  paekom-network:
+    external: true
+    name: paekom-network
