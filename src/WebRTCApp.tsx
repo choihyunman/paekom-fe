@@ -8,10 +8,9 @@ const WebRTCApp: React.FC = () => {
 
   useEffect(() => {
     // 1. WebSocket 연결
-    ws.current = new WebSocket("ws://localhost:8080/ws/signaling");
+    ws.current = new WebSocket(import.meta.env.VITE_WEBSOCKET_URL);
 
     ws.current.onopen = () => {
-      console.log("✅ WebSocket connected");
 
       // 2. PeerConnection 생성 (STUN 서버 설정)
       pc.current = new RTCPeerConnection({

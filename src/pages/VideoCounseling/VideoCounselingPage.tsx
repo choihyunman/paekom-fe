@@ -8,7 +8,7 @@ import counselorImg from "@/assets/counselor.png";
 import { useCallTimer } from "@/hooks/useCallTimer";
 
 type CallState = "idle" | "active" | "ended";
-const SIGNALING_URL = "ws://localhost:8080/ws/signaling";
+const SIGNALING_URL = import.meta.env.VITE_WEBSOCKET_URL;
 
 export default function VideoCounselingPage() {
   const { roomId = "room1" } = useParams();
@@ -43,11 +43,22 @@ export default function VideoCounselingPage() {
             </div>
           ) : showCounselor ? (
             <div className="h-[420px] w-full overflow-hidden rounded-xl">
-              <img
-                src={counselorImg}
-                alt="상담사"
-                className="h-full w-full rounded-xl object-cover"
-              />
+              {remoteStream ? (
+                <video
+                  autoPlay
+                  playsInline
+                  ref={(el) => {
+                    if (el && remoteStream) el.srcObject = remoteStream;
+                  }}
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              ) : (
+                <img
+                  src={counselorImg}
+                  alt="상담사"
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              )}
             </div>
           ) : (
             <div className="flex h-[420px] w-full flex-col items-center justify-center rounded-xl bg-white/30 text-slate-800 backdrop-blur">
