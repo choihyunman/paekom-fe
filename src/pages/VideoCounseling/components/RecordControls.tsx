@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useStereoRecorder } from "@/hooks/useStereoRecorder";
 import { useUploadSttMutation } from "@/hooks/useSttQueries";
 import { Lock, Loader2 } from "lucide-react";
-import { useUploadAndRequestReportMutation } from "@/hooks/useSttQueries";
+import { startBooking, completeBooking } from "@/api/booking";
+import { sttApi } from "@/api";
 
 export default function RecordControls({
   localStream,
@@ -10,12 +11,14 @@ export default function RecordControls({
   onStart,
   onEnd,
   ended = false,
+  bookingId,
 }: {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   onStart?: () => void;
   onEnd?: () => void;
   ended?: boolean;
+  bookingId?: number;
 }) {
   const { isRecording, start, stopAndGetFile } = useStereoRecorder({
     localStream,
@@ -27,14 +30,22 @@ export default function RecordControls({
   // 종료 버튼 누른 뒤 업로드까지 잠금용
   const [stopping, setStopping] = useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (ended) return;
     if (!localStream) {
       alert("마이크/카메라 권한을 확인해 주세요.");
       return;
     }
-    start();
-    onStart?.();
+    try {
+      if (bookingId) {
+        await startBooking(bookingId);
+      }
+      start();
+      onStart?.();
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "상담 시작 중 오류가 발생했습니다.");
+    }
   };
 
   const handleEnd = async () => {
@@ -43,9 +54,20 @@ export default function RecordControls({
     setStopping(true);
     try {
       const file = await stopAndGetFile(); // stop → File
-      await endMut.mutateAsync(file);
+
+      // 1. 상담 종료 API 호출
+      if (bookingId) {
+        await completeBooking(bookingId);
+      }
+
+      // 2. STT 업로드
       if (file && file.size > 0) {
-        await uploadMut.mutateAsync(file); // 업로드
+        const sttId = await uploadMut.mutateAsync({ file, bookingId });
+
+        // 3. Report 요청
+        if (sttId) {
+          await sttApi.requestSttReport(sttId, bookingId);
+        }
       }
     } catch (e: any) {
       console.error(e);
@@ -59,7 +81,6 @@ export default function RecordControls({
     ended || !localStream || stopping || uploadMut.isPending;
 
   const showEndBusy = stopping || uploadMut.isPending;
-  const endMut = useUploadAndRequestReportMutation();
 
   return (
     <div className="flex items-center rounded-full bg-white p-1 shadow">
