@@ -12,19 +12,28 @@ function splitSentences(text: string): string[] {
   return (matches || []).map((s) => s.trim()).filter(Boolean);
 }
 
-type TabContext = { report: { id: number } };
+type TabContext = { report: { id: number; appointmentId: number } };
 
-export default function ReplayTranscriptTab() {
-  const { report } = useOutletContext<TabContext>();
-  const id = report?.id;
+type Props = {
+  report?: { id: number; appointmentId: number };
+};
+
+export default function ReplayTranscriptTab({
+  report: reportProp,
+}: Props = {}) {
+  // 모달 모드: prop으로 받은 report 사용
+  // 라우터 모드: outlet context에서 report 사용
+  const outletContext = useOutletContext<TabContext>();
+  const report = reportProp || outletContext?.report;
+  const appointmentId = report?.appointmentId;
 
   const { byId, loading, error, fetch } = useSttStore();
 
   useEffect(() => {
-    if (Number.isFinite(id)) fetch(id);
-  }, [id, fetch]);
+    if (Number.isFinite(appointmentId)) fetch(appointmentId);
+  }, [appointmentId, fetch]);
 
-  const transcript = (id && byId[id]) || "";
+  const transcript = (appointmentId && byId[appointmentId]) || "";
   const sentences = useMemo(() => splitSentences(transcript), [transcript]);
 
   return (
@@ -38,10 +47,10 @@ export default function ReplayTranscriptTab() {
 
       <CardContent>
         <div className="rounded-lg bg-white border border-gray-400 p-4 max-h-[70vh] overflow-auto">
-          {loading[id!] ? (
+          {loading[appointmentId!] ? (
             <p className="text-sm text-gray-600">불러오는 중…</p>
-          ) : error[id!] ? (
-            <p className="text-sm text-red-600">{error[id!]}</p>
+          ) : error[appointmentId!] ? (
+            <p className="text-sm text-red-600">{error[appointmentId!]}</p>
           ) : sentences.length ? (
             // ✅ 말풍선 제거: 문장별로 한 줄씩 간격만 주어 표시
             <div className="space-y-1">

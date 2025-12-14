@@ -10,20 +10,30 @@ function getEmotionKorean(e: string) {
   return "중립";
 }
 
-type Ctx = {
-  report: {
-    summary: string;
-    issues: string[];
-    emotion: string;
-    evidence: { POSITIVE: number; NEUTRAL: number; NEGATIVE: number };
-    overallAssessment: string;
-  };
+type ReportData = {
+  summary: string;
+  issues: string[];
+  emotion: string;
+  evidence: { POSITIVE: number; NEUTRAL: number; NEGATIVE: number };
+  overallAssessment: string;
 };
 
-export default function ReportOverviewTab() {
-  // ✅ undefined 대비 (초기 렌더/라우팅 전환 시)
+type Ctx = {
+  report: ReportData;
+};
+
+type Props = {
+  report?: ReportData;
+};
+
+export default function ReportOverviewTab(
+  { report: reportProp }: Props = {} as Props
+) {
+  // ✅ prop이 있으면 prop 사용, 없으면 Outlet context 사용
   const ctx = useOutletContext<Ctx | undefined>();
-  if (!ctx?.report) {
+  const report = reportProp || ctx?.report;
+
+  if (!report) {
     return (
       <Card className="mb-8">
         <CardHeader>
@@ -35,14 +45,12 @@ export default function ReportOverviewTab() {
       </Card>
     );
   }
-
-  const { report } = ctx;
   const evidence = report.evidence ?? { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 };
 
   return (
     <>
       {/* 요약 */}
-      <Card className="mb-8" bgClassName="bg-gray-50">
+      <Card className="mb-4" bgClassName="bg-gray-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <FileText className="h-5 w-5 text-[#6EC6FF]" />
@@ -59,7 +67,7 @@ export default function ReportOverviewTab() {
       </Card>
 
       {/* 감정 */}
-      <Card className="mb-8" bgClassName="bg-gray-50">
+      <Card className="mb-4" bgClassName="bg-gray-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Heart className="h-5 w-5 text-[#FF8C69]" />
