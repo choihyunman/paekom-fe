@@ -67,9 +67,10 @@ const CATEGORIES: Category[] = [
   {
     id: "notice",
     title: "공지사항",
-    description: "새로운 소식과 정보를 확인할 수 있어요",
+    // description: "새로운 소식과 정보를 확인할 수 있어요",
+    description: "준비 중인 서비스예요",
     icon: Bell,
-    href: "/notices",
+    href: "/",
   },
 ];
 // -------------------------------------------

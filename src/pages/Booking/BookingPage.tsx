@@ -7,6 +7,7 @@ import TimeGrid from "./components/TimeGrid";
 import BookingSummaryCard from "./components/BookingSummaryCard";
 import BookingSuccess from "./components/BookingSuccess";
 import { addBooking } from "./BookingStorage";
+import { useBookingStore } from "@/stores/bookingStore";
 
 // 예약 가능한 시간 슬롯 (임시)
 const timeSlots = [
@@ -61,6 +62,7 @@ function generateDates(days = 14): DateItem[] {
 export default function BookingPage() {
   const navigate = useNavigate();
   const { setHeader, reset } = useHeader();
+  const { createBooking, loading, error } = useBookingStore();
 
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -80,22 +82,31 @@ export default function BookingPage() {
   // 날짜 리스트 메모
   const dates = useMemo(() => generateDates(14), []);
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedDate || !selectedTime) return;
 
-    // ✅ 이 시점에만 저장
-    addBooking({
-      date: selectedDate,
-      time: selectedTime,
-      method: "화상", // 기본값 (원하면 선택 UI 추가)
-      status: "확정",
-      counselor: "배정 대기",
-      note: "예약 확정 후 안내를 드립니다.",
-    });
+    try {
+      // API 호출
+      await createBooking(selectedDate, selectedTime);
 
-    setIsBooked(true);
-    // 또는 바로 목록으로 보내고 싶다면:
-    // navigate("/bookings", { replace: true })
+      // ✅ API 성공 후 로컬 스토리지에도 저장 (필요한 경우)
+      addBooking({
+        date: selectedDate,
+        time: selectedTime,
+        method: "화상", // 기본값 (원하면 선택 UI 추가)
+        status: "확정",
+        counselor: "배정 대기",
+        note: "예약 확정 후 안내를 드립니다.",
+      });
+
+      setIsBooked(true);
+      // 또는 바로 목록으로 보내고 싶다면:
+      // navigate("/bookings", { replace: true })
+    } catch (err) {
+      // 에러는 스토어에서 관리되므로 여기서는 로그만 남기거나
+      // 필요시 사용자에게 알림을 표시할 수 있습니다
+      console.error("예약 생성 실패:", err);
+    }
   };
 
   if (isBooked) {

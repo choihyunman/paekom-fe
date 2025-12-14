@@ -5,46 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { useHeader } from "@/components/shared/AppHeader";
 import BookingListItem from "./components/BookingListItem";
 import StatusBadge from "./components/StatusBadge";
-import { loadBookings, updateBooking, type Booking } from "./BookingStorage";
-
-const bookingsSeed: Booking[] = [
-  {
-    id: 1,
-    date: "2025-09-17",
-    time: "10:00",
-    counselor: "김상담 전문가",
-    method: "화상",
-    status: "확정",
-    createdAt: "2025-09-15T10:00:00",
-  },
-  {
-    id: 2,
-    date: "2025-09-12",
-    time: "16:00",
-    counselor: "이상담 전문가",
-    method: "화상",
-    status: "완료",
-    createdAt: "2025-09-10T16:00:00",
-  },
-  {
-    id: 3,
-    date: "2025-09-20",
-    time: "18:00",
-    counselor: "박상담 전문가",
-    method: "화상",
-    status: "대기",
-    createdAt: "2025-09-18T18:00:00",
-  },
-  {
-    id: 4,
-    date: "2025-09-10",
-    time: "11:00",
-    counselor: "정상담 전문가",
-    method: "화상",
-    status: "취소",
-    createdAt: "2025-09-08T11:00:00",
-  },
-];
+import { useBookingListStore } from "@/stores/bookingListStore";
+import { cancelBooking } from "@/api/booking";
 
 type TabKey = "upcoming" | "past" | "all";
 
@@ -52,7 +14,7 @@ export default function BookingListPage() {
   const navigate = useNavigate();
   const { setHeader, reset } = useHeader();
   const [tab, setTab] = useState<TabKey>("upcoming");
-  const [saved, setSaved] = useState<Booking[]>([]);
+  const { bookings, loading, error, fetchBookings } = useBookingListStore();
 
   // 공통 헤더
   useEffect(() => {
@@ -65,28 +27,58 @@ export default function BookingListPage() {
     return reset;
   }, [setHeader, reset]);
 
+  // API 데이터 가져오기
   useEffect(() => {
-    setSaved(loadBookings()); // 마운트 1회만
-  }, []);
+    fetchBookings({ force: true });
+  }, [fetchBookings]);
 
-  // 표시 리스트: 저장된 것(최신 우선) + seed
-  const list = useMemo(() => [...saved, ...bookingsSeed], [saved]);
+  // API 데이터를 UI 형식으로 변환
+  const list = useMemo(
+    () =>
+      bookings.map((b) => ({
+        id: b.id,
+        date: b.date,
+        time: b.time,
+        status: b.status, // 원본 status 사용
+        method: "화상" as const, // API에 없을 경우 기본값
+      })),
+    [bookings]
+  );
 
   // 분류
-  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isOnOrAfterToday = (dateStr: string) => {
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() >= today.getTime();
+  };
+
+  const isBeforeToday = (dateStr: string) => {
+    const d = new Date(dateStr);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() < today.getTime();
+  };
+
+  // ✅ 다가오는 예약: "확정"만
   const upcoming = useMemo(
+    () =>
+      list.filter((b) => isOnOrAfterToday(b.date) && b.status === "SCHEDULED"),
+    [list]
+  );
+
+  // ✅ 지난 예약: 완료된 것 + 날짜가 지난 것(취소 제외하고 싶으면 아래에서 추가로 빼면 됨)
+  const past = useMemo(
     () =>
       list.filter(
         (b) =>
-          new Date(b.date) >= new Date(now.toDateString()) &&
-          b.status !== "취소"
+          (b.status === "COMPLETED" || isBeforeToday(b.date)) &&
+          b.status !== "CANCELLED"
       ),
     [list]
   );
-  const past = useMemo(
-    () => list.filter((b) => new Date(b.date) < new Date(now.toDateString())),
-    [list]
-  );
+
   const display = tab === "upcoming" ? upcoming : tab === "past" ? past : list;
 
   // 액션
@@ -102,10 +94,16 @@ export default function BookingListPage() {
     navigate(`/booking`, { state: target });
   };
 
-  // ✅ 취소 시 스토리지 업데이트 + 화면 갱신
-  const handleCancel = (id: number) => {
-    updateBooking(id, { status: "취소" });
-    setSaved(loadBookings()); // 갱신 반영
+  // ✅ 취소 시 API 호출
+  const handleCancel = async (id: number) => {
+    try {
+      await cancelBooking(id);
+      // 목록 새로고침
+      await fetchBookings({ force: true });
+    } catch (err) {
+      console.error("예약 취소 실패:", err);
+      // 에러 처리 (필요시 사용자에게 알림 표시)
+    }
   };
 
   return (
@@ -136,7 +134,25 @@ export default function BookingListPage() {
         </div>
 
         {/* 리스트 */}
-        {display.length ? (
+        {loading ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-gray-600">예약 목록을 불러오는 중...</p>
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button
+                className="bg-[#6EC6FF] hover:bg-[#5BB8F3] text-white cursor-pointer"
+                onClick={() => fetchBookings({ force: true })}
+              >
+                다시 시도
+              </Button>
+            </CardContent>
+          </Card>
+        ) : display.length ? (
           <div className="space-y-4">
             {display
               .sort(
@@ -146,7 +162,7 @@ export default function BookingListPage() {
               .map((b) => (
                 <BookingListItem
                   key={b.id}
-                  booking={{ ...b, counselor: b.counselor || "배정 대기" }}
+                  booking={b}
                   statusBadge={<StatusBadge status={b.status} />}
                   onOpen={() => handleOpen(b.id)}
                   onReschedule={() => handleReschedule(b.id)}
@@ -162,7 +178,7 @@ export default function BookingListPage() {
                 className="bg-[#6EC6FF] hover:bg-[#5BB8F3] text-white cursor-pointer"
                 onClick={() => navigate("/booking")}
               >
-                첫 예약 만들기
+                새 예약 만들기
               </Button>
             </CardContent>
           </Card>

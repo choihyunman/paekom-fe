@@ -17,7 +17,7 @@ export default function ReportList({ reports, onOpen }: Props) {
   return (
     <div className="space-y-4">
       {reports.map((report, idx) => {
-        const displayTitle = `${idx + 1}번째 상담`; // 목록 순서 기반 제목
+        const displayTitle = `${reports.length - idx}번째 상담`; // 목록 순서 기반 제목 (맨 아래부터 1번)
         return (
           <Card
             key={report.id}

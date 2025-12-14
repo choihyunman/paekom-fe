@@ -4,13 +4,15 @@ import type { ApiTranscriptPayload } from "@/types/stt";
 import { unwrapApi } from "@/types/api";
 
 // 파일 업로드
-export async function uploadSttFile(file: File) {
+export async function uploadSttFile(file: File, bookingId?: number) {
   const form = new FormData();
   form.append("file", file);
+  if (bookingId !== undefined) {
+    form.append("bookingId", bookingId.toString());
+  }
 
-  const res = await http.post<ApiResponse<{ id: number }>>("/stt", form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const res = await http.post<ApiResponse<{ id: number }>>("/stt", form);
+
   if (!res.data || res.data.status !== "success") {
     throw new Error(res.data?.error || "Upload failed");
   }
@@ -21,10 +23,12 @@ export async function uploadSttFile(file: File) {
 
 // 업로드 후 보고서 생성 요청
 export async function requestSttReport(
-  sttId: number
+  sttId: number,
+  bookingId?: number
 ): Promise<number | undefined> {
   const res = await http.post<ApiResponse<{ reportId: number }>>("/report", {
     sttId,
+    ...(bookingId !== undefined && { bookingId }),
   });
   if (!res.data || res.data.status !== "success") {
     throw new Error(res.data?.error || "Report create failed");
@@ -35,20 +39,22 @@ export async function requestSttReport(
 
 /** 체이닝: 업로드 후 즉시 보고서 생성 요청 */
 export async function uploadAndRequestReport(
-  file: File
+  file: File,
+  bookingId?: number
 ): Promise<{ sttId: number; reportId?: number }> {
   console.log("업로드 요청");
-  const sttId = await uploadSttFile(file);
+  const sttId = await uploadSttFile(file, bookingId);
   console.log("보고서 생성 요청");
-  const reportId = await requestSttReport(sttId);
+  const reportId = await requestSttReport(sttId, bookingId);
   return { sttId, reportId };
 }
 
-// STT Job 단건 조회 (예: GET /api/stt/jobs/{id})
-export async function getReportTranscript(id: number): Promise<string> {
-  // 예시: GET /reports/{id}/transcript  (서버 라우트에 맞게 변경)
+// Transcript 조회 (appointmentId 사용)
+export async function getReportTranscript(
+  appointmentId: number
+): Promise<string> {
   const { data } = await http.get<ApiResponse<ApiTranscriptPayload>>(
-    `/stt/${id}`
+    `/stt/${appointmentId}`
   );
   const payload = unwrapApi(data);
   return (payload.transcript ?? "").trim();
