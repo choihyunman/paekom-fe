@@ -92,7 +92,7 @@ export default function AppHeader({ className }: { className?: string }) {
   if (isEmpty && config.showEmptyBar) {
     return (
       <div
-        className={cn("w-full", className)}
+        className={cn("w-full sticky top-[64px] z-10", className)}
         style={{ backgroundColor: config.bg }}
       >
         <header
@@ -106,7 +106,7 @@ export default function AppHeader({ className }: { className?: string }) {
   const backLabel = config.backLabel ?? "홈으로";
 
   return (
-    <div className="bg-[#CAE8FA] sticky top-[64px]">
+    <div className="bg-[#CAE8FA] sticky top-[64px] z-10">
       <header className="shadow-sm">
         <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center justify-between">
