@@ -3,19 +3,41 @@ import { createSignaling } from "@/lib/signaling";
 import { ICE_CONFIG } from "@/lib/iceServers";
 import { useCallStore } from "@/stores/callStore";
 
-const DEMO = import.meta.env.VITE_DEMO_MODE;
+const DEMO = import.meta.env.VITE_DEMO_MODE === "true";
 
 export function useWebRTC(roomId: string, signalingUrl: string) {
   const { micOn, camOn } = useCallStore();
+
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localRef = useRef<MediaStream | null>(null);
+  const abortedRef = useRef(false);
+
   const [local, setLocal] = useState<MediaStream | null>(null);
   const [remote, setRemote] = useState<MediaStream | null>(null);
   const [connected, setConnected] = useState(false);
 
-  // StrictMode/재마운트 대비용 취소 플래그
-  const abortedRef = useRef(false);
+  /* -------------------- 공통 cleanup -------------------- */
+  const cleanupAll = useCallback(() => {
+    abortedRef.current = true;
 
+    try {
+      localRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {}
+
+    try {
+      pcRef.current?.getSenders().forEach((s) => s.track?.stop());
+      pcRef.current?.close();
+    } catch {}
+
+    localRef.current = null;
+    pcRef.current = null;
+
+    setLocal(null);
+    setRemote(null);
+    setConnected(false);
+  }, []);
+
+  /* -------------------- signaling -------------------- */
   const signaling = useMemo(
     () =>
       createSignaling(signalingUrl, async (msg) => {
@@ -23,66 +45,50 @@ export function useWebRTC(roomId: string, signalingUrl: string) {
         if (!pc || pc.signalingState === "closed") return;
 
         if (msg.type === "offer") {
-          await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+          await pc.setRemoteDescription(msg.sdp);
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           signaling.send({ type: "answer", roomId, sdp: answer });
         } else if (msg.type === "answer") {
-          await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+          await pc.setRemoteDescription(msg.sdp);
         } else if (msg.type === "ice" && msg.candidate) {
           try {
-            await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            await pc.addIceCandidate(msg.candidate);
           } catch {}
         }
       }),
     [roomId, signalingUrl]
   );
 
-  const safeClosePc = (pc?: RTCPeerConnection | null) => {
-    if (!pc) return;
-    try {
-      pc.getSenders().forEach((s) => s.track?.stop());
-    } catch {}
-    try {
-      pc.close();
-    } catch {}
-  };
-
+  /* -------------------- leave -------------------- */
   const leave = useCallback(() => {
-    abortedRef.current = true; // 이후 비동기 작업 무시
     try {
       signaling.send({ type: "leave", roomId });
     } catch {}
-    safeClosePc(pcRef.current);
-    pcRef.current = null;
-    try {
-      localRef.current?.getTracks().forEach((t) => t.stop());
-    } catch {}
-    localRef.current = null;
-    setLocal(null);
-    setRemote(null);
-    setConnected(false);
+
+    cleanupAll();
+
     try {
       signaling.close();
     } catch {}
-  }, [roomId, signaling]);
+  }, [roomId, signaling, cleanupAll]);
 
+  /* -------------------- main effect -------------------- */
   useEffect(() => {
+    abortedRef.current = false;
+
     if (DEMO) {
-      // 시그널링 없이 로컬만
       (async () => {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
+        localRef.current = stream;
         setLocal(stream);
-        setRemote(null); // 상대 없음 → 대기화면/사진
-        setConnected(false);
       })();
-      return; // WebRTC 로직 건너뛰기
-    }
 
-    abortedRef.current = false;
+      return cleanupAll;
+    }
 
     const pc = new RTCPeerConnection(ICE_CONFIG);
     pcRef.current = pc;
@@ -113,12 +119,7 @@ export function useWebRTC(roomId: string, signalingUrl: string) {
         audio: true,
       });
 
-      // 🔒 cleanup/재마운트로 무효화된 경우 즉시 중단
-      if (
-        abortedRef.current ||
-        pcRef.current !== pc ||
-        pc.signalingState === "closed"
-      ) {
+      if (abortedRef.current) {
         stream.getTracks().forEach((t) => t.stop());
         return;
       }
@@ -129,49 +130,32 @@ export function useWebRTC(roomId: string, signalingUrl: string) {
       localRef.current = stream;
       setLocal(stream);
 
-      // 🔒 addTrack 전에 다시 한 번 PC 상태 확인
-      if (pcRef.current === pc && pc.connectionState !== "closed") {
-        stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-      }
+      stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
       signaling.send({ type: "join", roomId });
       const offer = await pc.createOffer();
-
-      // 🔒 setLocalDescription 전에 다시 확인
-      if (
-        !abortedRef.current &&
-        pcRef.current === pc &&
-        pc.connectionState !== "closed"
-      ) {
-        await pc.setLocalDescription(offer);
-        signaling.send({ type: "offer", roomId, sdp: offer });
-      }
+      await pc.setLocalDescription(offer);
+      signaling.send({ type: "offer", roomId, sdp: offer });
     })();
 
-    return () => {
-      abortedRef.current = true;
-      // 이 effect에서 만든 pc만 닫기(새로운 pc가 이미 만들어졌을 수 있음)
-      if (pcRef.current === pc) {
-        leave();
-      } else {
-        safeClosePc(pc); // 로컬 pc만 안전 종료
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return leave;
   }, [roomId]);
 
-  // mic/cam 토글 동기화
+  /* -------------------- mic / cam toggle -------------------- */
   useEffect(() => {
-    const s = localRef.current;
-    if (!s) return;
-    s.getAudioTracks().forEach((t) => (t.enabled = micOn));
+    localRef.current?.getAudioTracks().forEach((t) => (t.enabled = micOn));
   }, [micOn]);
 
   useEffect(() => {
-    const s = localRef.current;
-    if (!s) return;
-    s.getVideoTracks().forEach((t) => (t.enabled = camOn));
+    localRef.current?.getVideoTracks().forEach((t) => (t.enabled = camOn));
   }, [camOn]);
+
+  /* -------------------- page exit -------------------- */
+  useEffect(() => {
+    const onPageHide = () => cleanupAll();
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, [cleanupAll]);
 
   return { local, remote, connected, leave };
 }

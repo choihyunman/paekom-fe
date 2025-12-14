@@ -3,7 +3,8 @@ import { sttApi } from "@/api";
 
 export function useUploadSttMutation() {
   return useMutation({
-    mutationFn: sttApi.uploadSttFile, // (file: File) => Promise<number>
+    mutationFn: ({ file, bookingId }: { file: File; bookingId?: number }) =>
+      sttApi.uploadSttFile(file, bookingId),
   });
 }
 
