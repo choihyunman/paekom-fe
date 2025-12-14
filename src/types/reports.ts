@@ -3,6 +3,7 @@ export interface ApiReport {
   reportId: number;
   summary: string;
   createdAt: string; // ISO
+  appointmentId: number;
 }
 
 // payload를 배열로 정의
@@ -13,6 +14,7 @@ export interface ReportListItem {
   summary: string;
   createdAt: string;
   dateLabel: string;
+  appointmentId: number;
 }
 
 export type Emotion = "POSITIVE" | "NEUTRAL" | "NEGATIVE" | string;
@@ -24,6 +26,7 @@ export interface EvidenceRaw {
 }
 
 export interface ApiReportDetailPayload {
+  appointmentId: number;
   summary: string;
   issues: string[];
   emotion: Emotion;
@@ -34,6 +37,7 @@ export interface ApiReportDetailPayload {
 
 export interface ReportDetail {
   id: number;
+  appointmentId: number;
   summary: string;
   issues: string[];
   emotion: Emotion;

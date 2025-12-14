@@ -1,36 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { Badge, type BadgeProps } from "@/components/ui/Badge";
-import { Sparkles, StickyNote } from "lucide-react";
-import { useHeader } from "@/components/shared/AppHeader";
-import { getMissionById } from "./missionStorage";
-
-// ---- 타입
-type MissionDetail = {
-  title: string;
-  content: string;
-  category: string;
-  memo?: string;
-  feedback?: string;
-};
-
-type MissionResponse =
-  | { status: "success"; data: MissionDetail }
-  | { status: "error"; message: string };
-
-// ---- 카테고리 라벨/색상 매핑 (서비스 공통 맵)
-const CATEGORY_LABEL: Record<string, string> = {
-  SELF_CARE: "자기관리",
-  STUDY: "학업",
-  HOBBY: "취미",
-  OUTDOOR: "외부활동",
-  SOCIAL: "사회활동",
-  JOB_PREP: "취업준비",
-  OTHER: "기타",
-};
+import { Sparkles, StickyNote, Trash2, Calendar, Pencil } from "lucide-react";
+import { getMissionDetail, deleteMission } from "@/api/mission";
+import { CATEGORY_LABEL, type MissionDetail } from "@/types/misson";
 
 type BadgeVariant = NonNullable<BadgeProps["variant"]>;
 
@@ -38,68 +13,58 @@ const CATEGORY_VARIANT: Record<string, BadgeVariant> = {
   SELF_CARE: "secondary",
   STUDY: "default",
   HOBBY: "outline",
+  SPORTS: "secondary",
   OUTDOOR: "secondary",
   SOCIAL: "outline",
-  JOB_PREP: "default",
-  OTHER: "outline",
+  CAREER: "default",
+  ETC: "outline",
 };
 
-// ---- 임시 데이터 (나중에 API 연동 시 제거하세요)
-const SAMPLE_RESPONSE: MissionResponse = {
-  status: "success",
-  data: {
-    title: "하루 30분 운동하기",
-    content:
-      "매일 저녁 9시에 스트레칭을 하고 있다. 러닝 30분씩 하는데 기분이 좋았다.",
-    category: "SELF_CARE",
-    memo: "지금처럼 쭉 가보자고",
-    feedback:
-      "매일 저녁 9시에 꾸준히 스트레칭을 하고 러닝까지 30분씩 하는 모습이 정말 대단해요! 몸과 마음이 함께 건강해지는 걸 느끼신다니 저도 함께 기분이 좋아지네요. 지금처럼 작은 성취를 소중히 여기며 쭉 나아가다 보면, 분명 몸과 마음에 더 큰 변화가 찾아올 거예요. 조금만 더 여유를 갖고 즐기듯이 해보세요. 응원할게요!",
-  },
+type Props = {
+  missionId?: number; // ✅ 모달에서 전달
+  onClose?: () => void; // ✅ 모달 닫기
+  hideBackButton?: boolean; // (선택) 페이지/모달 UI 차이 주고 싶으면
 };
 
-export default function MissionDetailPage() {
-  const { id } = useParams();
-  const { setHeader, reset } = useHeader();
+export default function MissionDetailPage({
+  missionId,
+  onClose,
+  hideBackButton,
+}: Props) {
+  const params = useParams();
+  const navigate = useNavigate();
+
+  const resolvedId = useMemo(() => {
+    if (params.id) return Number(params.id);
+    if (typeof missionId === "number") return missionId;
+    return NaN;
+  }, [params.id, missionId]);
+
   const [mission, setMission] = useState<MissionDetail | null>(null);
-  const [error] = useState<string | null>(null);
-
-  // 헤더 설정
-  useEffect(() => {
-    setHeader({
-      title: "미션 상세",
-      showBack: true,
-      backTo: "/missions",
-      backLabel: "목록으로",
-    });
-    return reset;
-  }, [setHeader, reset]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const n = Number(id);
-    const found = Number.isFinite(n) ? getMissionById(n) : undefined;
-    if (found) {
-      // 저장된 데이터로 상세 표시
-      setMission({
-        title: found.title,
-        content: found.content,
-        category: found.category, // 이미 표시라벨
-        memo: found.memo,
-        // 피드백이 없으면 임시 데이터의 피드백 사용
-        feedback:
-          found.feedback ||
-          (SAMPLE_RESPONSE.status === "success"
-            ? SAMPLE_RESPONSE.data.feedback
-            : undefined),
-      });
-      return;
-    }
-
-    // 없으면 기존 SAMPLE_RESPONSE 등으로 fallback
-    if (SAMPLE_RESPONSE.status === "success") {
-      setMission(SAMPLE_RESPONSE.data);
-    }
-  }, [id]);
+    const run = async () => {
+      if (!Number.isFinite(resolvedId)) {
+        setError("유효하지 않은 미션 ID입니다.");
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getMissionDetail(resolvedId);
+        setMission(data);
+      } catch (e: any) {
+        setError(e?.message || "미션 상세 정보를 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, [resolvedId]);
 
   const categoryLabel = useMemo(
     () => (mission ? CATEGORY_LABEL[mission.category] ?? mission.category : ""),
@@ -111,6 +76,24 @@ export default function MissionDetailPage() {
       mission ? CATEGORY_VARIANT[mission.category] ?? "secondary" : "secondary",
     [mission]
   );
+
+  const handleDelete = async () => {
+    if (!Number.isFinite(resolvedId)) return;
+    const confirmed = window.confirm(
+      "정말 이 미션을 삭제하시겠습니까? 삭제된 미션은 복구할 수 없습니다."
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteMission(resolvedId);
+      if (onClose) onClose();
+      else navigate("/missions", { replace: true });
+    } catch (e: any) {
+      alert(e?.message || "미션 삭제 중 오류가 발생했습니다.");
+      setIsDeleting(false);
+    }
+  };
 
   if (error) {
     return (
@@ -132,7 +115,7 @@ export default function MissionDetailPage() {
     );
   }
 
-  if (!mission) {
+  if (loading) {
     return (
       <div className="mx-auto max-w-3xl">
         <Card>
@@ -144,77 +127,136 @@ export default function MissionDetailPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white">
+  if (!mission) {
+    return (
       <div className="mx-auto max-w-3xl">
-        {/* ✅ 제목 · 내용 · 메모: 하나의 카드로 합침 */}
-        <Card className="my-6">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {mission.title}
-              </CardTitle>
-              <Badge variant={categoryVariant}>{categoryLabel}</Badge>
-            </div>
-          </CardHeader>
-
-          <CardContent className="pt-0">
-            {/* 기록 내용 */}
-            <div className="my-4">
-              <p className="whitespace-pre-line leading-7 text-gray-800">
-                {mission.content}
-              </p>
-            </div>
-            <div className="border-t border-gray-400"></div>
-
-            {/* 메모 (옵션) — 같은 카드 내부 */}
-            {mission.memo && (
-              <>
-                <Separator className="my-2" />
-                <div>
-                  <div className="flex items-center gap-2 text-gray-700 mb-2">
-                    <StickyNote className="h-4 w-4" />
-                    <span className="font-medium">추가 메모</span>
-                  </div>
-                  <p className="whitespace-pre-line text-gray-800">
-                    {mission.memo}
-                  </p>
-                </div>
-              </>
-            )}
-
-            {/* 액션 */}
-            <div className="mt-2 flex items-center justify-end gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link to={`/missions`}>목록으로</Link>
-              </Button>
-              <Button
-                asChild
-                size="sm"
-                className="bg-sky-400 hover:bg-sky-500 text-white"
-              >
-                <Link to={`/missions/${id}/edit`}>수정</Link>
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-gray-500">
+              {error || "미션을 찾을 수 없습니다."}
+            </p>
+            <div className="mt-6 text-center">
+              <Button asChild variant="outline">
+                <Link to="/missions">목록으로</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
 
-        {/* AI 피드백 (옵션) — 별도 카드 유지 */}
-        {mission.feedback && (
-          <Card className="border-sky-200 bg-sky-50">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2 text-sky-800">
-                <Sparkles className="h-4 w-4" />
-                <span className="font-semibold">AI 피드백</span>
+  function formatKoreanDateTime(iso?: string) {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "-";
+
+    const yyyy = String(d.getFullYear());
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="mx-2">
+        {/* ✅ 제목 · 내용 · 메모: 하나의 카드로 합침 */}
+        <Card className="overflow-hidden">
+          {/* 상단: 타이틀 + 카테고리 + 작성일시 */}
+          <CardHeader className="pb-4 border-b-1 border-gray-200 bg-gray-50/60">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <CardTitle className="text-2xl font-bold text-gray-900 break-words">
+                  {mission.title}
+                </CardTitle>
+
+                {/* 메타 정보 라인 */}
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4" />
+                    <span>작성</span>
+                    <span className="font-medium text-gray-800">
+                      {formatKoreanDateTime(mission.createdAt)}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <blockquote className="rounded-xl bg-white/60 p-4 text-[15px] leading-7 text-gray-800">
-                {mission.feedback}
-              </blockquote>
-            </CardContent>
-          </Card>
-        )}
+
+              <Badge className="shrink-0" variant={categoryVariant}>
+                {categoryLabel}
+              </Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            <div className="px-2 py-2 space-y-4">
+              {/* ✅ 기록 내용 섹션 */}
+              <section>
+                <div className="mb-2 flex items-center gap-2 text-gray-900">
+                  <Pencil className="h-4 w-4 text-gray-700" />
+                  <div className="text-sm font-semibold text-gray-900">
+                    기록 내용
+                  </div>
+                </div>
+
+                <div className="rounded-2xl  bg-white p-4">
+                  <p className="whitespace-pre-line leading-7 text-gray-800">
+                    {mission.content}
+                  </p>
+                </div>
+              </section>
+
+              {/* ✅ 메모 섹션 (없어도 항상 표시) */}
+              <section>
+                <div className="mb-2 flex items-center gap-2 text-gray-900">
+                  <StickyNote className="h-4 w-4 text-gray-700" />
+                  <span className="text-sm font-semibold">메모</span>
+                  <span className="text-xs text-gray-500">(선택)</span>
+                </div>
+
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="whitespace-pre-line leading-7 text-gray-800">
+                    {mission.memo}
+                  </p>
+                </div>
+              </section>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="pt-4">
+          {/* AI 피드백 (옵션) — 별도 카드 유지 */}
+          {mission.feedback && (
+            <Card className="border-sky-200 bg-sky-50">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2 text-sky-800">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="font-semibold">AI 피드백</span>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <blockquote className="rounded-xl bg-white/60 p-4 text-[15px] leading-7 text-gray-800">
+                  {mission.feedback}
+                </blockquote>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* 하단 액션 바 */}
+        <div className="py-4 flex items-center justify-end">
+          <Button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            size="sm"
+            className="bg-rose-400 hover:bg-rose-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {isDeleting ? "삭제 중..." : "삭제"}
+          </Button>
+        </div>
       </div>
     </div>
   );

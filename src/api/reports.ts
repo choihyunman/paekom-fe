@@ -32,6 +32,7 @@ function mapApiToListItem(r: ApiReport): ReportListItem {
     id: r.reportId,
     summary: r.summary,
     createdAt: r.createdAt,
+    appointmentId: r.appointmentId,
     dateLabel: toDateLabel(r.createdAt),
   };
 }
@@ -43,6 +44,7 @@ function mapApiToDetail(id: number, p: ApiReportDetailPayload): ReportDetail {
 
   return {
     id,
+    appointmentId: p.appointmentId,
     summary: p.summary,
     issues: p.issues ?? [],
     emotion: p.emotion,

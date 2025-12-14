@@ -6,23 +6,85 @@ import RecordControls from "./components/RecordControls";
 import { Users, ShieldCheck, MessageSquareHeart } from "lucide-react";
 import counselorImg from "@/assets/counselor.png";
 import { useCallTimer } from "@/hooks/useCallTimer";
+import { useBookingStore } from "@/stores/bookingStore";
+import { useBookingListStore } from "@/stores/bookingListStore";
+import { useHeader } from "@/components/shared/AppHeader";
 
 type CallState = "idle" | "active" | "ended";
-const SIGNALING_URL = "ws://localhost:8080/ws/signaling";
+const SIGNALING_URL = import.meta.env.VITE_WEBSOCKET_URL;
 
 export default function VideoCounselingPage() {
-  const { roomId = "room1" } = useParams();
+  const { roomId = "room1", id: bookingIdParam } = useParams<{
+    roomId?: string;
+    id?: string;
+  }>();
   const [showCounselor, setShowCounselor] = React.useState(false);
   const [callState, setCallState] = React.useState<CallState>("idle");
+  const { booking, setBooking } = useBookingStore();
+  const { bookings, fetchBookings } = useBookingListStore();
+  const { setHeader, reset } = useHeader();
+
+  // 헤더 설정
+  React.useEffect(() => {
+    setHeader({
+      title: "화상 상담",
+      showBack: true,
+      backTo: "/",
+      backLabel: "홈으로",
+    });
+    return reset;
+  }, [setHeader, reset]);
+
+  // URL에서 받은 booking id로 booking 정보 설정
+  React.useEffect(() => {
+    if (bookingIdParam) {
+      const bookingId = parseInt(bookingIdParam, 10);
+      if (!isNaN(bookingId)) {
+        // bookingListStore에서 해당 id의 booking 찾기
+        const foundBooking = bookings.find((b) => b.id === bookingId);
+        if (foundBooking) {
+          // BookingListItem을 ApiBooking 형식으로 변환
+          setBooking({
+            id: foundBooking.id,
+            scheduledDate: foundBooking.date,
+            scheduledTime: foundBooking.time,
+            status: foundBooking.status,
+          });
+        } else if (bookings.length === 0) {
+          // 목록이 비어있으면 새로고침 시도
+          fetchBookings({ force: true });
+        }
+      }
+    }
+  }, [bookingIdParam]); // bookingIdParam만 의존성으로
+
+  // bookings가 업데이트된 후 다시 찾기
+  React.useEffect(() => {
+    if (bookingIdParam && bookings.length > 0) {
+      const bookingId = parseInt(bookingIdParam, 10);
+      if (!isNaN(bookingId)) {
+        const foundBooking = bookings.find((b) => b.id === bookingId);
+        if (foundBooking && (!booking || booking.id !== foundBooking.id)) {
+          setBooking({
+            id: foundBooking.id,
+            scheduledDate: foundBooking.date,
+            scheduledTime: foundBooking.time,
+            status: foundBooking.status,
+          });
+        }
+      }
+    }
+  }, [bookings, bookingIdParam, booking, setBooking]);
 
   // 진행 타이머
   const isRunning = callState === "active";
   const elapsed = useCallTimer(isRunning);
 
-  const { local: localStream, remote: remoteStream } = useWebRTC(
-    roomId,
-    SIGNALING_URL
-  );
+  const {
+    local: localStream,
+    remote: remoteStream,
+    leave,
+  } = useWebRTC(roomId, SIGNALING_URL);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -43,11 +105,22 @@ export default function VideoCounselingPage() {
             </div>
           ) : showCounselor ? (
             <div className="h-[420px] w-full overflow-hidden rounded-xl">
-              <img
-                src={counselorImg}
-                alt="상담사"
-                className="h-full w-full rounded-xl object-cover"
-              />
+              {remoteStream ? (
+                <video
+                  autoPlay
+                  playsInline
+                  ref={(el) => {
+                    if (el && remoteStream) el.srcObject = remoteStream;
+                  }}
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              ) : (
+                <img
+                  src={counselorImg}
+                  alt="상담사"
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              )}
             </div>
           ) : (
             <div className="flex h-[420px] w-full flex-col items-center justify-center rounded-xl bg-white/30 text-slate-800 backdrop-blur">
@@ -65,6 +138,7 @@ export default function VideoCounselingPage() {
               localStream={localStream}
               remoteStream={remoteStream}
               ended={callState === "ended"}
+              bookingId={booking?.id}
               onStart={() => {
                 setShowCounselor(true);
                 setCallState("active");
@@ -72,6 +146,8 @@ export default function VideoCounselingPage() {
               onEnd={() => {
                 setShowCounselor(false);
                 setCallState("ended");
+                // 카메라와 마이크 연결 끊기
+                leave();
               }}
             />
           </div>

@@ -1,0 +1,27 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_WEBSOCKET_URL=${VITE_WEBSOCKET_URL}
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    networks:
+      - paekom-network
+    restart: always
+
+networks:
+  paekom-network:
+    external: true
+
+
+#     # 컨테이너/이미지 완전 삭제
+# docker compose down
+# docker image rm paekom-fe-frontend  # 이미지 이름은 네 프로젝트에 맞게
+# # 다시 빌드
+# docker compose build --no-cache frontend
+# docker compose up -d frontend
